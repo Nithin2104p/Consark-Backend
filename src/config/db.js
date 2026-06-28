@@ -3,7 +3,7 @@ const env = require("./env");
 
 const connectDatabase = async () => {
     try {
-        // console.log("MongoDB connection URI:", env.mongoUri); // Log the connection URI for debugging
+        // console.log("MongoDB connection URI:", env.mongoUri); // debugging
         await mongoose.connect(env.mongoUri);
 
         mongoose.connection.on("connected", () => {

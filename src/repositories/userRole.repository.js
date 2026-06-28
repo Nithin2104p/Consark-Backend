@@ -1,4 +1,5 @@
 const UserRole = require('../models/userRole.model');
+const AppError = require('../utils/appError');
 const {
     buildQueryOptions,
     withActiveFilter,
@@ -6,68 +7,96 @@ const {
 } = require('../utils/repositoryUtils');
 
 const createOne = async (document, options = {}) => {
-    return UserRole.create(document, buildQueryOptions(options));
+    try {
+        return UserRole.create(document, buildQueryOptions(options));
+    } catch (error) {
+        throw new AppError(`createOne: ${error.message}`, 500);
+    }
 };
 
 const bulkCreate = async (documents, options = {}) => {
-    return UserRole.insertMany(documents, {
-        ordered: options.ordered !== false,
-        ...buildQueryOptions(options),
-    });
+    try {
+        return UserRole.insertMany(documents, {
+            ordered: options.ordered !== false,
+            ...buildQueryOptions(options),
+        });
+    } catch (error) {
+        throw new AppError(`bulkCreate: ${error.message}`, 500);
+    }
 };
 
 const findOne = async (filter = {}, options = {}) => {
-    const query = UserRole.findOne(withActiveFilter(filter, options));
+    try {
+        const query = UserRole.findOne(withActiveFilter(filter, options));
 
-    if (options.session) {
-        query.session(options.session);
+        if (options.session) {
+            query.session(options.session);
+        }
+
+        return applyModifiers(query, options);
+    } catch (error) {
+        throw new AppError(`findOne: ${error.message}`, 500);
     }
-
-    return applyModifiers(query, options);
 };
 
 const findMany = async (filter = {}, options = {}) => {
-    const query = UserRole.find(withActiveFilter(filter, options));
+    try {
+        const query = UserRole.find(withActiveFilter(filter, options));
 
-    if (options.session) {
-        query.session(options.session);
+        if (options.session) {
+            query.session(options.session);
+        }
+
+        return applyModifiers(query, options);
+    } catch (error) {
+        throw new AppError(`findMany: ${error.message}`, 500);
     }
-
-    return applyModifiers(query, options);
 };
 
 const findById = async (id, options = {}) => {
-    const filter = { _id: id };
+    try {
+        const filter = { _id: id };
 
-    if (!options.includeDeleted) {
-        filter.deletedAt = null;
+        if (!options.includeDeleted) {
+            filter.deletedAt = null;
+        }
+
+        const query = UserRole.findOne(filter);
+
+        if (options.session) {
+            query.session(options.session);
+        }
+
+        return applyModifiers(query, options);
+    } catch (error) {
+        throw new AppError(`findById: ${error.message}`, 500);
     }
-
-    const query = UserRole.findOne(filter);
-
-    if (options.session) {
-        query.session(options.session);
-    }
-
-    return applyModifiers(query, options);
 };
 
 const updateOne = async (filter, updateData, options = {}) => {
-    return UserRole.findOneAndUpdate(
-        withActiveFilter(filter, options),
-        updateData,
-        {
-            returnDocument: 'after',
-            runValidators: true,
-            setDefaultsOnInsert: true,
-            ...buildQueryOptions(options),
-            ...options.queryOptions,
-        }
-    );
+    try {
+        return UserRole.findOneAndUpdate(
+            withActiveFilter(filter, options),
+            updateData,
+            {
+                returnDocument: 'after',
+                runValidators: true,
+                setDefaultsOnInsert: true,
+                ...buildQueryOptions(options),
+                ...(options.queryOptions || {}),
+            }
+        );
+    } catch (error) {
+        throw new AppError(`updateOne: ${error.message}`, 500);
+    }
 };
 
 const deleteOne = async (filter = {}, options = {}) => {
-    return UserRole.deleteOne(withActiveFilter(filter, options), buildQueryOptions(options));
+    try {
+        return UserRole.deleteOne(withActiveFilter(filter, options), buildQueryOptions(options));
+    } catch (error) {
+        throw new AppError(`deleteOne: ${error.message}`, 500);
+    }
 };
 
 module.exports = {

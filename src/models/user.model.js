@@ -53,6 +53,11 @@ const userSchema = new mongoose.Schema(
             type: Date,
             default: null,
         },
+
+        companyId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Company",
+        },
     },
     {
         timestamps: true,

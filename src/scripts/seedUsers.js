@@ -1,11 +1,15 @@
 const connectDatabase = require('../config/db');
 const User = require('../models/user.model');
 const Role = require('../models/role.model');
+const Company = require('../models/company.model');
 const bcrypt = require('bcryptjs');
 const { SAMPLE_USERS } = require('../constants/rolesPermissions');
 
 const seedUsers = async () => {
     await connectDatabase();
+
+    const defaultCompany = await Company.findOne({ name: 'Acme Corp' });
+    const companyId = defaultCompany ? defaultCompany._id : null;
 
     for (const u of SAMPLE_USERS) {
         const role = await Role.findOne({ name: u.role });
@@ -25,6 +29,7 @@ const seedUsers = async () => {
                     email: u.email,
                     password: hashed,
                     isActive: true,
+                    companyId,
                 },
             },
             { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }

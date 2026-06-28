@@ -1,4 +1,5 @@
 const Task = require('../models/task.model');
+const AppError = require('../utils/appError');
 const {
     buildQueryOptions,
     withActiveFilter,
@@ -6,68 +7,113 @@ const {
 } = require('../utils/repositoryUtils');
 
 const createOne = async (document, options = {}) => {
-    return Task.create(document, buildQueryOptions(options));
+    try {
+        return Task.create(document, buildQueryOptions(options));
+    } catch (error) {
+        throw new AppError(`createOne: ${error.message}`, 500);
+    }
 };
 
 const bulkCreate = async (documents, options = {}) => {
-    return Task.insertMany(documents, {
-        ordered: options.ordered !== false,
-        ...buildQueryOptions(options),
-    });
+    try {
+        return Task.insertMany(documents, {
+            ordered: options.ordered !== false,
+            ...buildQueryOptions(options),
+        });
+    } catch (error) {
+        throw new AppError(`bulkCreate: ${error.message}`, 500);
+    }
 };
 
 const findOne = async (filter = {}, options = {}) => {
-    const query = Task.findOne(withActiveFilter(filter, options));
+    try {
+        const query = Task.findOne(withActiveFilter(filter, options));
 
-    if (options.session) {
-        query.session(options.session);
+        if (options.session) {
+            query.session(options.session);
+        }
+
+        return applyModifiers(query, options);
+    } catch (error) {
+        throw new AppError(`findOne: ${error.message}`, 500);
     }
-
-    return applyModifiers(query, options);
 };
 
 const findMany = async (filter = {}, options = {}) => {
-    const query = Task.find(withActiveFilter(filter, options));
+    try {
+        const query = Task.find(withActiveFilter(filter, options));
 
-    if (options.session) {
-        query.session(options.session);
+        if (options.session) {
+            query.session(options.session);
+        }
+
+        return applyModifiers(query, options);
+    } catch (error) {
+        throw new AppError(`findMany: ${error.message}`, 500);
     }
-
-    return applyModifiers(query, options);
 };
 
 const findById = async (id, options = {}) => {
-    const filter = { _id: id };
+    try {
+        const filter = { _id: id };
 
-    if (!options.includeDeleted) {
-        filter.deletedAt = null;
+        if (!options.includeDeleted) {
+            filter.deletedAt = null;
+        }
+
+        const query = Task.findOne(filter);
+
+        if (options.session) {
+            query.session(options.session);
+        }
+
+        return applyModifiers(query, options);
+    } catch (error) {
+        throw new AppError(`findById: ${error.message}`, 500);
     }
-
-    const query = Task.findOne(filter);
-
-    if (options.session) {
-        query.session(options.session);
-    }
-
-    return applyModifiers(query, options);
 };
 
 const updateOne = async (filter, updateData, options = {}) => {
-    return Task.findOneAndUpdate(
-        withActiveFilter(filter, options),
-        updateData,
-        {
-            returnDocument: 'after',
-            runValidators: true,
-            setDefaultsOnInsert: true,
-            ...buildQueryOptions(options),
-            ...options.queryOptions,
-        }
-    );
+    try {
+        return Task.findOneAndUpdate(
+            withActiveFilter(filter, options),
+            updateData,
+            {
+                returnDocument: 'after',
+                runValidators: true,
+                setDefaultsOnInsert: true,
+                ...buildQueryOptions(options),
+                ...(options.queryOptions || {}),
+            }
+        );
+    } catch (error) {
+        throw new AppError(`updateOne: ${error.message}`, 500);
+    }
 };
 
 const deleteOne = async (filter = {}, options = {}) => {
-    return Task.deleteOne(withActiveFilter(filter, options), buildQueryOptions(options));
+    try {
+        return Task.deleteOne(withActiveFilter(filter, options), buildQueryOptions(options));
+    } catch (error) {
+        throw new AppError(`deleteOne: ${error.message}`, 500);
+    }
+};
+
+const countDocuments = async (filter = {}, options = {}) => {
+    try {
+        const query = Task.countDocuments(withActiveFilter(filter, options));
+        return query;
+    } catch (error) {
+        throw new AppError(`countDocuments: ${error.message}`, 500);
+    }
+};
+
+const countByStatus = async (status, options = {}) => {
+    try {
+        return countDocuments({ status }, options);
+    } catch (error) {
+        throw new AppError(`countByStatus: ${error.message}`, 500);
+    }
 };
 
 module.exports = {
@@ -78,4 +124,7 @@ module.exports = {
     findById,
     updateOne,
     deleteOne,
+    countDocuments,
+    countByStatus,
 };
+

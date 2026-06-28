@@ -5,6 +5,7 @@ const {
     getTaskByIdHandler,
     updateTaskHandler,
     deleteTaskHandler,
+    getTaskCountsHandler,
 } = require('../controllers/task.controller');
 const authenticate = require('../middlewares/auth.middleware');
 const validate = require('../middlewares/validate.middleware');
@@ -21,8 +22,10 @@ router.use(authenticate);
 
 router.post('/', validate(createTaskSchema), createTaskHandler);
 router.get('/', validate(taskQuerySchema, 'query'), getTasksHandler);
+router.get('/count', getTaskCountsHandler);
 router.get('/:id', validate(taskIdParam, 'params'), getTaskByIdHandler);
 router.put('/:id', validate(taskIdParam, 'params'), validate(updateTaskSchema), updateTaskHandler);
 router.delete('/:id', validate(taskIdParam, 'params'), deleteTaskHandler);
 
 module.exports = router;
+

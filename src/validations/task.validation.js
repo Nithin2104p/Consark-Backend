@@ -6,7 +6,7 @@ const createTaskSchema = z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string().optional(),
     priority: z.enum(['Low', 'Medium', 'High']),
-    status: z.enum(['Open', 'In Progress', 'Completed']).optional(),
+    status: z.enum(['Open', 'In-Progress', 'Pending', 'Completed']).optional(),
     assignedTo: objectIdSchema.optional(),
 });
 
@@ -23,7 +23,7 @@ const taskIdParam = z.object({
 });
 
 const taskQuerySchema = z.object({
-    status: z.enum(['Open', 'In Progress', 'Completed']).optional(),
+    status: z.enum(['Open', 'In-Progress', 'Pending', 'Completed']).optional(),
     priority: z.enum(['Low', 'Medium', 'High']).optional(),
     createdBy: objectIdSchema.optional(),
     assignedTo: objectIdSchema.optional(),

@@ -26,11 +26,14 @@ const taskSchema = new mongoose.Schema(
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
-            required: true,
         },
         assignedTo: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
+        },
+        companyId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Company",
         },
         dueDate: {
             type: Date,
@@ -44,6 +47,8 @@ const taskSchema = new mongoose.Schema(
         timestamps: true,
     }
 );
+
+taskSchema.index({ companyId: 1 });
 
 // Useful indexes for filtering, sorting, and searching tasks
 taskSchema.index({ status: 1, priority: 1, createdBy: 1 });

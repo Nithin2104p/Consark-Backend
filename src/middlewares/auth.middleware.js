@@ -1,5 +1,6 @@
 const jwtUtils = require('../utils/jwt');
 const AppError = require('../utils/appError');
+const userRepository = require('../repositories/user.repository');
 
 const authenticate = async (req, res, next) => {
     try {
@@ -11,10 +12,16 @@ const authenticate = async (req, res, next) => {
 
         const decoded = jwtUtils.verifyJwt(token);
 
+        const user = await userRepository.findOne(
+            { _id: decoded.userId },
+            { select: 'companyId' }
+        );
+
         req.user = {
             id: decoded.userId,
             email: decoded.email,
             role: decoded.role,
+            companyId: user?.companyId || null,
         };
 
         next();

@@ -20,9 +20,10 @@
     "seed:permissions": "node src/scripts/seedPermissions.js",
     "seed:roles": "node src/scripts/seedRoles.js",
     "seed:role-permissions": "node src/scripts/seedRolePermissions.js",
+    "seed:companies": "node src/scripts/seedCompanies.js",
     "seed:users": "node src/scripts/seedUsers.js",
     "seed:user-roles": "node src/scripts/seedUserRoles.js",
-    "seed": "npm run seed:permissions && npm run seed:roles && npm run seed:role-permissions && npm run seed:users && npm run seed:user-roles",
+    "seed": "npm run seed:permissions && npm run seed:roles && npm run seed:role-permissions && npm run seed:companies && npm run seed:users && npm run seed:user-roles",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {

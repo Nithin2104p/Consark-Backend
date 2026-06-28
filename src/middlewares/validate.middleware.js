@@ -7,6 +7,7 @@ const validate = (schema, property = 'body') => {
             req[property] = schema.parse(req[property]);
             return next();
         } catch (error) {
+
             if (error instanceof ZodError) {
                 const errors = error.errors.map((issue) => ({
                     field: issue.path.join('.') || property,
@@ -20,3 +21,4 @@ const validate = (schema, property = 'body') => {
 };
 
 module.exports = validate;
+
