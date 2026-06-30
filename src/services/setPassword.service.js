@@ -23,7 +23,7 @@ const setPassword = async (token, newPassword) => {
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         const updatedUser = await userRepository.updateOne(
             { _id: decoded.userId },
-            { password: hashedPassword }
+            { password: hashedPassword, status: 'Active' }
         );
 
         if (!updatedUser) {

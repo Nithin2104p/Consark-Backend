@@ -34,7 +34,7 @@ const userSchema = new mongoose.Schema(
         status: {
             type: String,
             enum: ['Invited', 'Active', 'Inactive', 'Suspended'],
-            default: 'Active',
+            default: 'Invited',
         },
 
         // Authentication related
