@@ -19,7 +19,7 @@ const findByRole = async (roleId, options = {}) => {
         const docs = await query;
         return docs;
     } catch (error) {
-        throw new AppError(`findByRole: ${error.message}`, error.statusCode || 500);
+        throw new AppError(error.message, error.statusCode || 500, null, { source: 'findByRole' });
     }
 };
 

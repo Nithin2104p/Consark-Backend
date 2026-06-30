@@ -17,14 +17,13 @@ const userSchema = new mongoose.Schema(
         email: {
             type: String,
             required: true,
-            unique: true,
             lowercase: true,
             trim: true,
         },
 
         password: {
             type: String,
-            required: true,
+            required: false,
         },
 
         // Account status
@@ -58,6 +57,16 @@ const userSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "Company",
         },
+
+        location: {
+            type: String,
+            trim: true,
+        },
+
+        phoneNumber: {
+            type: String,
+            trim: true,
+        },
     },
     {
         timestamps: true,
@@ -65,6 +74,9 @@ const userSchema = new mongoose.Schema(
 );
 
 
+
+userSchema.index({ firstName: 'text', lastName: 'text', email: 'text' });
+userSchema.index({ companyId: 1, email: 1 }, { unique: true });
 
 const User = mongoose.model("User", userSchema);
 

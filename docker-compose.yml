@@ -1,0 +1,33 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://mongo:27017/taskdb
+      - JWT_SECRET=your_jwt_secret
+      - JWT_EXPIRES_IN=1h
+      - FRONTEND_URL=http://localhost:5173
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - EMAIL_FROM=${EMAIL_FROM}
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - mongo
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+
+volumes:
+  mongo-data:

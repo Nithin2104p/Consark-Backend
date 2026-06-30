@@ -10,7 +10,7 @@ const createOne = async (document, options = {}) => {
     try {
         return Role.create(document, buildQueryOptions(options));
     } catch (error) {
-        throw new AppError(`createOne: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'createOne' });
     }
 };
 
@@ -21,7 +21,7 @@ const bulkCreate = async (documents, options = {}) => {
             ...buildQueryOptions(options),
         });
     } catch (error) {
-        throw new AppError(`bulkCreate: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'bulkCreate' });
     }
 };
 
@@ -35,7 +35,7 @@ const findOne = async (filter = {}, options = {}) => {
 
         return applyModifiers(query, options);
     } catch (error) {
-        throw new AppError(`findOne: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'findOne' });
     }
 };
 
@@ -49,7 +49,7 @@ const findAll = async (filter = {}, options = {}) => {
 
         return applyModifiers(query, options);
     } catch (error) {
-        throw new AppError(`findAll: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'findAll' });
     }
 };
 
@@ -63,7 +63,7 @@ const findMany = async (filter = {}, options = {}) => {
 
         return applyModifiers(query, options);
     } catch (error) {
-        throw new AppError(`findMany: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'findMany' });
     }
 };
 
@@ -83,7 +83,7 @@ const findById = async (id, options = {}) => {
 
         return applyModifiers(query, options);
     } catch (error) {
-        throw new AppError(`findById: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'findById' });
     }
 };
 
@@ -101,7 +101,7 @@ const updateOne = async (filter, updateData, options = {}) => {
             }
         );
     } catch (error) {
-        throw new AppError(`updateOne: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'updateOne' });
     }
 };
 
@@ -109,7 +109,7 @@ const deleteOne = async (filter = {}, options = {}) => {
     try {
         return Role.deleteOne(withActiveFilter(filter, options), buildQueryOptions(options));
     } catch (error) {
-        throw new AppError(`deleteOne: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'deleteOne' });
     }
 };
 

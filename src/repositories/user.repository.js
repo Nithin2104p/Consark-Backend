@@ -11,7 +11,10 @@ const createOne = async (document, options = {}) => {
         const [created] = await User.create([document], buildQueryOptions(options));
         return created;
     } catch (error) {
-        throw new AppError(`createOne: ${error.message}`, 500);
+        const appError = new AppError(error.message, error.statusCode || 500);
+        appError.code = error.code;
+        appError.keyPattern = error.keyPattern || error.keyValue;
+        throw appError;
     }
 };
 
@@ -22,7 +25,7 @@ const bulkCreate = async (documents, options = {}) => {
             ...buildQueryOptions(options),
         });
     } catch (error) {
-        throw new AppError(`bulkCreate: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'bulkCreate' });
     }
 };
 
@@ -36,7 +39,7 @@ const findOne = async (filter = {}, options = {}) => {
 
         return applyModifiers(query, options);
     } catch (error) {
-        throw new AppError(`findOne: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'findOne' });
     }
 };
 
@@ -50,7 +53,7 @@ const findMany = async (filter = {}, options = {}) => {
 
         return applyModifiers(query, options);
     } catch (error) {
-        throw new AppError(`findMany: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'findMany' });
     }
 };
 
@@ -70,7 +73,7 @@ const findById = async (id, options = {}) => {
 
         return applyModifiers(query, options);
     } catch (error) {
-        throw new AppError(`findById: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'findById' });
     }
 };
 
@@ -88,7 +91,7 @@ const updateOne = async (filter, updateData, options = {}) => {
             }
         );
     } catch (error) {
-        throw new AppError(`updateOne: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'updateOne' });
     }
 };
 
@@ -103,7 +106,21 @@ const deleteOne = async (filter = {}, options = {}) => {
             }
         );
     } catch (error) {
-        throw new AppError(`deleteOne: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'deleteOne' });
+    }
+};
+
+const countDocuments = async (filter = {}, options = {}) => {
+    try {
+        const query = User.countDocuments(withActiveFilter(filter, options));
+
+        if (options.session) {
+            query.session(options.session);
+        }
+
+        return applyModifiers(query, options);
+    } catch (error) {
+        throw new AppError(error.message, 500, null, { source: 'countDocuments' });
     }
 };
 
@@ -115,4 +132,5 @@ module.exports = {
     findById,
     updateOne,
     deleteOne,
+    countDocuments,
 };

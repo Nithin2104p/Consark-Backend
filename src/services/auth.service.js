@@ -12,7 +12,7 @@ const getUserByEmail = async (email) => {
     try {
         return userRepository.findOne({ email });
     } catch (error) {
-        throw new AppError(`getUserByEmail: ${error.message}`, error.statusCode || 500);
+        throw new AppError(error.message, error.statusCode || 500, null, { source: 'getUserByEmail' });
     }
 };
 
@@ -32,7 +32,7 @@ const fetchRoleAndPermissions = async (roleId) => {
             permissions,
         };
     } catch (error) {
-        throw new AppError(`fetchRoleAndPermissions: ${error.message}`, error.statusCode || 500);
+        throw new AppError(error.message, error.statusCode || 500, null, { source: 'fetchRoleAndPermissions' });
     }
 };
 
@@ -40,12 +40,12 @@ const signup = async ({ firstName, lastName, email, password, role = 'super_admi
     try {
         const existingUser = await getUserByEmail(email);
         if (existingUser) {
-            throw new AppError('Email already in use', 409);
+            throw AppError.conflict('Email already in use', null, { source: 'signup' });
         }
 
         const roleRecord = await roleRepository.findOne({ name: role });
         if (!roleRecord) {
-            throw new AppError(`Role not found: ${role}`, 404);
+            throw AppError.notFound(`Role not found: ${role}`, null, { source: 'signup' });
         }
 
         const company = await companyService.createCompany(companyName);
@@ -70,7 +70,7 @@ const signup = async ({ firstName, lastName, email, password, role = 'super_admi
 
         const { permissions } = await fetchRoleAndPermissions(roleRecord._id);
 
-        const token = jwtUtils.signJwt({ userId: savedUser._id, email: savedUser.email, role: roleRecord.name });
+        const token = jwtUtils.signJwt({ userId: savedUser._id, email: savedUser.email, role: roleRecord.name, companyId: company._id });
 
         return {
             user: {
@@ -87,20 +87,20 @@ const signup = async ({ firstName, lastName, email, password, role = 'super_admi
             token,
         };
     } catch (error) {
-        throw new AppError(`signup: ${error.message}`, error.statusCode || 500);
+        throw new AppError(error.message, error.statusCode || 500, null, { source: 'signup' });
     }
 };
 
-const login = async ({ email, password }) => {
+const login = async ({ email, password, companyId }) => {
     try {
-        const user = await getUserByEmail(email);
+        const user = await userRepository.findOne({ email, companyId });
         if (!user) {
-            throw new AppError('Invalid credentials', 401);
+            throw new AppError('Invalid credentials', 401, null, { source: 'login' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            throw new AppError('Invalid credentials', 401);
+            throw new AppError('Invalid credentials', 401, null, { source: 'login' });
         }
 
         const userRoles = await userRoleRepository.findMany(
@@ -116,7 +116,7 @@ const login = async ({ email, password }) => {
         const permissionResults = await Promise.all(permissionPromises);
         const permissions = permissionResults.flatMap((result) => result.permissions);
 
-        const token = jwtUtils.signJwt({ userId: user._id, email: user.email, role: roleName });
+        const token = jwtUtils.signJwt({ userId: user._id, email: user.email, role: roleName, companyId: user.companyId });
 
         return {
             user: {
@@ -125,13 +125,14 @@ const login = async ({ email, password }) => {
                 lastName: user.lastName,
                 email: user.email,
                 role: roleName,
+                companyId: user.companyId,
             },
             roles: roleRecords,
             permissions,
             token,
         };
     } catch (error) {
-        throw new AppError(`login: ${error.message}`, error.statusCode || 500);
+        throw new AppError(error.message, error.statusCode || 500, null, { source: 'login' });
     }
 };
 

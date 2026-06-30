@@ -8,9 +8,10 @@ const {
 
 const createOne = async (document, options = {}) => {
     try {
-        return Task.create(document, buildQueryOptions(options));
+        const [created] = await Task.create([document], buildQueryOptions(options));
+        return created;
     } catch (error) {
-        throw new AppError(`createOne: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'createOne' });
     }
 };
 
@@ -21,7 +22,7 @@ const bulkCreate = async (documents, options = {}) => {
             ...buildQueryOptions(options),
         });
     } catch (error) {
-        throw new AppError(`bulkCreate: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'bulkCreate' });
     }
 };
 
@@ -35,7 +36,7 @@ const findOne = async (filter = {}, options = {}) => {
 
         return applyModifiers(query, options);
     } catch (error) {
-        throw new AppError(`findOne: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'findOne' });
     }
 };
 
@@ -49,7 +50,7 @@ const findMany = async (filter = {}, options = {}) => {
 
         return applyModifiers(query, options);
     } catch (error) {
-        throw new AppError(`findMany: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'findMany' });
     }
 };
 
@@ -69,7 +70,7 @@ const findById = async (id, options = {}) => {
 
         return applyModifiers(query, options);
     } catch (error) {
-        throw new AppError(`findById: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'findById' });
     }
 };
 
@@ -87,7 +88,7 @@ const updateOne = async (filter, updateData, options = {}) => {
             }
         );
     } catch (error) {
-        throw new AppError(`updateOne: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'updateOne' });
     }
 };
 
@@ -95,7 +96,7 @@ const deleteOne = async (filter = {}, options = {}) => {
     try {
         return Task.deleteOne(withActiveFilter(filter, options), buildQueryOptions(options));
     } catch (error) {
-        throw new AppError(`deleteOne: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'deleteOne' });
     }
 };
 
@@ -104,7 +105,7 @@ const countDocuments = async (filter = {}, options = {}) => {
         const query = Task.countDocuments(withActiveFilter(filter, options));
         return query;
     } catch (error) {
-        throw new AppError(`countDocuments: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'countDocuments' });
     }
 };
 
@@ -112,7 +113,7 @@ const countByStatus = async (status, options = {}) => {
     try {
         return countDocuments({ status }, options);
     } catch (error) {
-        throw new AppError(`countByStatus: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'countByStatus' });
     }
 };
 

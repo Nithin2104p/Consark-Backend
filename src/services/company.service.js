@@ -4,13 +4,16 @@ const AppError = require('../utils/appError');
 const createCompany = async (companyName) => {
     try {
         if (!companyName || typeof companyName !== 'string') {
-            throw new AppError(`createCompany: companyName is required but received: ${JSON.stringify(companyName)}`, 400);
+            throw new AppError('Company name is required', 400, null, { source: 'createCompany' });
         }
         const company = await companyRepository.createOne({ name: companyName });
         return company;
     } catch (error) {
-        if (error instanceof AppError) throw error;
-        throw new AppError(`createCompany: ${error.message}`, error.statusCode || 500);
+        if (error instanceof AppError) {
+            error.datapoints = error.datapoints || { source: 'createCompany' };
+            throw error;
+        }
+        throw new AppError(error.message, error.statusCode || 500, null, { source: 'createCompany' });
     }
 };
 

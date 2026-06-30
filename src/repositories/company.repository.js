@@ -11,7 +11,7 @@ const createOne = async (document, options = {}) => {
         const [created] = await Company.create([document], buildQueryOptions(options));
         return created;
     } catch (error) {
-        throw new AppError(`createOne: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'createOne' });
     }
 };
 
@@ -25,7 +25,7 @@ const findOne = async (filter = {}, options = {}) => {
 
         return applyModifiers(query, options);
     } catch (error) {
-        throw new AppError(`findOne: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'findOne' });
     }
 };
 
@@ -45,7 +45,21 @@ const findById = async (id, options = {}) => {
 
         return applyModifiers(query, options);
     } catch (error) {
-        throw new AppError(`findById: ${error.message}`, 500);
+        throw new AppError(error.message, 500, null, { source: 'findById' });
+    }
+};
+
+const findMany = async (filter = {}, options = {}) => {
+    try {
+        const query = Company.find(withActiveFilter(filter, options));
+
+        if (options.session) {
+            query.session(options.session);
+        }
+
+        return applyModifiers(query, options);
+    } catch (error) {
+        throw new AppError(error.message, 500, null, { source: 'findMany' });
     }
 };
 
@@ -53,4 +67,5 @@ module.exports = {
     createOne,
     findOne,
     findById,
+    findMany,
 };
