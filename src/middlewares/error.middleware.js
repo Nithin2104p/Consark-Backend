@@ -19,7 +19,7 @@ const getDuplicateKeyErrors = (error) => {
 };
 
 const normalizeError = (error) => {
-    if (err == null) {
+    if (error == null) {
         return {
             statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
             message: 'Internal Server Error',
