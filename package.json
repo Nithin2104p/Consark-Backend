@@ -14,20 +14,18 @@
   "author": "Nithin",
   "type": "commonjs",
   "main": "src/server.js",
-  {
-    "scripts": {
-      "dev": "nodemon",
-      "server": "node src/server.js",
-      "start": "npm run seed && npm run server",
-      "seed:permissions": "node src/scripts/seedPermissions.js",
-      "seed:roles": "node src/scripts/seedRoles.js",
-      "seed:role-permissions": "node src/scripts/seedRolePermissions.js",
-      "seed:companies": "node src/scripts/seedCompanies.js",
-      "seed:users": "node src/scripts/seedUsers.js",
-      "seed:user-roles": "node src/scripts/seedUserRoles.js",
-      "seed": "npm run seed:permissions && npm run seed:roles && npm run seed:role-permissions && npm run seed:companies && npm run seed:users && npm run seed:user-roles"
-    }
-  }
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "server": "node src/server.js",
+    "start": "npm run seed && npm run server",
+    "seed:permissions": "node src/scripts/seedPermissions.js",
+    "seed:roles": "node src/scripts/seedRoles.js",
+    "seed:role-permissions": "node src/scripts/seedRolePermissions.js",
+    "seed:companies": "node src/scripts/seedCompanies.js",
+    "seed:users": "node src/scripts/seedUsers.js",
+    "seed:user-roles": "node src/scripts/seedUserRoles.js",
+    "seed": "npm run seed:permissions && npm run seed:roles && npm run seed:role-permissions && npm run seed:companies && npm run seed:users && npm run seed:user-roles"
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.6",
