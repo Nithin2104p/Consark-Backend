@@ -51,7 +51,7 @@ const getTaskByIdHandler = asyncHandler(async (req, res) => {
 
 const updateTaskHandler = asyncHandler(async (req, res) => {
     try {
-        const task = await updateTask(req.params.id, req.body, req.user?.id);
+        const task = await updateTask(req.params.id, req.body, req.user?.id, req.user?.companyId, req.body);
         logger.info('Task updated', { taskId: req.params.id });
         return sendSuccess(res, task, 'Task updated successfully');
     } catch (error) {
@@ -62,7 +62,7 @@ const updateTaskHandler = asyncHandler(async (req, res) => {
 
 const deleteTaskHandler = asyncHandler(async (req, res) => {
     try {
-        const task = await deleteTask(req.params.id, req.user?.id);
+        const task = await deleteTask(req.params.id, req.user?.id, req.user?.companyId);
         logger.info('Task deleted', { taskId: req.params.id });
         return sendSuccess(res, task, 'Task deleted successfully');
     } catch (error) {

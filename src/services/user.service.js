@@ -6,6 +6,8 @@ const emailService = require('./email.service');
 const { generateSetPasswordToken } = require('./setPassword.service');
 const AppError = require('../utils/appError');
 const env = require('../config/env');
+const logger = require('../utils/logger');
+const taskService = require('./task.service');
 
 const buildUserFilter = (query = {}) => {
     const filter = {};
@@ -34,6 +36,7 @@ const createUser = async (userData, companyId) => {
         const createdUser = await userRepository.createOne({
             ...userData,
             companyId,
+            status: 'Invited',
         });
 
         if (roleId) {
@@ -57,7 +60,11 @@ const createUser = async (userData, companyId) => {
         if (!userData.password && createdUser.email) {
             const token = generateSetPasswordToken(createdUser._id, createdUser.email);
             const resetLink = `${env.frontendUrl}/set-password?token=${token}`;
-            await emailService.sendSetPasswordEmail(createdUser.email, resetLink);
+            try {
+                await emailService.sendSetPasswordEmail(createdUser.email, resetLink);
+            } catch (emailError) {
+                logger.error('Failed to send set-password email after user creation', { userId: createdUser._id, error: emailError.message });
+            }
         }
 
         return createdUser;
@@ -129,7 +136,7 @@ const getUserByIdWithTasks = async (id, companyId) => {
     try {
         const [user, tasks] = await Promise.all([
             getUserById(id),
-            getTasksByUserId(id, companyId),
+            taskService.getTasksByUserId(id, companyId),
         ]);
 
         if (!user || !companyId || user.companyId?.toString() !== companyId?.toString()) {

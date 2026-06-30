@@ -48,44 +48,56 @@ const signup = async ({ firstName, lastName, email, password, role = 'super_admi
             throw AppError.notFound(`Role not found: ${role}`, null, { source: 'signup' });
         }
 
-        const company = await companyService.createCompany(companyName);
+        const mongoose = require('mongoose');
+        const session = await mongoose.startSession();
+        session.startTransaction();
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const userData = {
-            firstName,
-            lastName,
-            email,
-            password: hashedPassword,
-            isActive: true,
-            companyId: company._id,
-        };
+        try {
+            const company = await companyService.createCompany(companyName, { session });
 
-        const savedUser = await userRepository.createOne(userData);
-
-        await userRoleRepository.updateOne(
-            { user: savedUser._id, role: roleRecord._id },
-            { user: savedUser._id, role: roleRecord._id, assignedAt: new Date() },
-            { queryOptions: { upsert: true }, setDefaultsOnInsert: true }
-        );
-
-        const { permissions } = await fetchRoleAndPermissions(roleRecord._id);
-
-        const token = jwtUtils.signJwt({ userId: savedUser._id, email: savedUser.email, role: roleRecord.name, companyId: company._id });
-
-        return {
-            user: {
-                id: savedUser._id,
-                firstName: savedUser.firstName,
-                lastName: savedUser.lastName,
-                email: savedUser.email,
-                role: roleRecord.name,
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const userData = {
+                firstName,
+                lastName,
+                email,
+                password: hashedPassword,
+                isActive: true,
                 companyId: company._id,
-                companyName: company.name,
-            },
-            roles: [roleRecord],
-            permissions,
-            token,
-        };
+            };
+
+            const savedUser = await userRepository.createOne(userData, { session });
+
+            await userRoleRepository.updateOne(
+                { user: savedUser._id, role: roleRecord._id },
+                { user: savedUser._id, role: roleRecord._id, assignedAt: new Date() },
+                { queryOptions: { upsert: true }, setDefaultsOnInsert: true, session }
+            );
+
+            await session.commitTransaction();
+            await session.endSession();
+
+            const { permissions } = await fetchRoleAndPermissions(roleRecord._id);
+            const token = jwtUtils.signJwt({ userId: savedUser._id, email: savedUser.email, role: roleRecord.name, companyId: company._id });
+
+            return {
+                user: {
+                    id: savedUser._id,
+                    firstName: savedUser.firstName,
+                    lastName: savedUser.lastName,
+                    email: savedUser.email,
+                    role: roleRecord.name,
+                    companyId: company._id,
+                    companyName: company.name,
+                },
+                roles: [roleRecord],
+                permissions,
+                token,
+            };
+        } catch (error) {
+            await session.abortTransaction();
+            await session.endSession();
+            throw error;
+        }
     } catch (error) {
         throw new AppError(error.message, error.statusCode || 500, null, { source: 'signup' });
     }
@@ -95,6 +107,10 @@ const login = async ({ email, password, companyId }) => {
     try {
         const user = await userRepository.findOne({ email, companyId });
         if (!user) {
+            throw new AppError('Invalid credentials', 401, null, { source: 'login' });
+        }
+
+        if (!user.password) {
             throw new AppError('Invalid credentials', 401, null, { source: 'login' });
         }
 

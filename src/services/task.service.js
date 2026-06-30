@@ -1,5 +1,6 @@
 const taskRepository = require('../repositories/task.repository');
 const AppError = require('../utils/appError');
+const Task = require('../models/task.model');
 
 const createTask = async (taskData, userId, companyId) => {
     try {
@@ -87,9 +88,11 @@ const getPaginatedTasks = async (query = {}, options = {}) => {
             skip: String(skip),
         };
 
+        const { filter, options: queryOptions } = buildTasksQuery(taskQuery, options);
+
         const [tasks, total] = await Promise.all([
-            getTasks(taskQuery, options),
-            taskRepository.countDocuments(buildTasksQuery(query, options).filter),
+            taskRepository.findMany(filter, queryOptions),
+            taskRepository.countDocuments(filter),
         ]);
 
         const totalPages = Math.ceil(total / limit) || 1;
@@ -110,13 +113,15 @@ const getPaginatedTasks = async (query = {}, options = {}) => {
 
 const getTaskById = async (id, options = {}) => {
     try {
-        return taskRepository.findById(id, options);
+        const filter = { _id: id };
+        if (options.companyId) filter.companyId = options.companyId;
+        return taskRepository.findById(filter, options);
     } catch (error) {
         throw new AppError(error.message, error.statusCode || 500, null, { source: 'getTaskById' });
     }
 };
 
-const updateTask = async (id, updateData, userId, options = {}) => {
+const updateTask = async (id, updateData, userId, companyId, options = {}) => {
     try {
         if (!userId) {
             throw AppError.unauthorized('Authentication required', null, { source: 'updateTask' });
@@ -125,19 +130,25 @@ const updateTask = async (id, updateData, userId, options = {}) => {
         const sanitized = { ...updateData };
         delete sanitized.createdBy;
 
-        return taskRepository.updateOne({ _id: id }, sanitized, options);
+        const filter = { _id: id };
+        if (companyId) filter.companyId = companyId;
+
+        return taskRepository.updateOne(filter, sanitized, options);
     } catch (error) {
         throw new AppError(error.message, error.statusCode || 500, null, { source: 'updateTask' });
     }
 };
 
-const deleteTask = async (id, userId, options = {}) => {
+const deleteTask = async (id, userId, companyId, options = {}) => {
     try {
         if (!userId) {
             throw AppError.unauthorized('Authentication required', null, { source: 'deleteTask' });
         }
 
-        return taskRepository.deleteOne({ _id: id }, options);
+        const filter = { _id: id };
+        if (companyId) filter.companyId = companyId;
+
+        return taskRepository.deleteOne(filter, options);
     } catch (error) {
         throw new AppError(error.message, error.statusCode || 500, null, { source: 'deleteTask' });
     }
@@ -157,22 +168,32 @@ const getTasksByUserId = async (userId, companyId) => {
 
 const getTaskCounts = async (options = {}) => {
     try {
-        const filter = {};
-        if (options.companyId) filter.companyId = options.companyId;
-        if (options.userRole === 'user' && options.userId) filter.createdBy = options.userId;
+        const filter = buildTasksQuery({}, options).filter;
 
-    const [total, open, inProgress, completed] = await Promise.all([
-        taskRepository.countDocuments(filter),
-        taskRepository.countDocuments({ ...filter, status: 'Open' }),
-        taskRepository.countDocuments({ ...filter, status: 'In-Progress' }),
-        taskRepository.countDocuments({ ...filter, status: 'Completed' }),
-    ]);
+        const result = await Task.aggregate([
+            { $match: filter },
+            {
+                $facet: {
+                    total: [{ $count: 'count' }],
+                    byStatus: [
+                        { $group: { _id: '$status', count: { $sum: 1 } } },
+                    ],
+                },
+            },
+        ]);
+
+        const [facet] = result;
+        const totalTasks = facet?.total?.[0]?.count || 0;
+        const byStatus = facet?.byStatus?.reduce((acc, item) => {
+            acc[item._id] = item.count;
+            return acc;
+        }, {}) || {};
 
         return {
-            totalTasks: total,
-            openTasks: open,
-            inProgressTasks: inProgress,
-            completedTasks: completed,
+            totalTasks,
+            openTasks: byStatus['Open'] || 0,
+            inProgressTasks: byStatus['In-Progress'] || 0,
+            completedTasks: byStatus['Completed'] || 0,
         };
     } catch (error) {
         throw new AppError(error.message, error.statusCode || 500, null, { source: 'getTaskCounts' });

@@ -31,6 +31,11 @@ const userSchema = new mongoose.Schema(
             type: Boolean,
             default: true,
         },
+        status: {
+            type: String,
+            enum: ['Invited', 'Active', 'Inactive', 'Suspended'],
+            default: 'Active',
+        },
 
         // Authentication related
         lastLoginAt: {

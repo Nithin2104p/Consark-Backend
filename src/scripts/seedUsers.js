@@ -29,6 +29,7 @@ const seedUsers = async () => {
                     email: u.email,
                     password: hashed,
                     isActive: true,
+                    status: 'Active',
                     companyId,
                 },
             },

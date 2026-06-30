@@ -33,7 +33,13 @@ const setPassword = async (token, newPassword) => {
         return updatedUser;
     } catch (error) {
         if (error instanceof AppError) {
-            throw AppError.badRequest(error.message, error.errors, { source: 'setPassword' });
+            throw error;
+        }
+        if (error.name === 'TokenExpiredError') {
+            throw AppError.badRequest('Token expired', null, { source: 'setPassword' });
+        }
+        if (error.name === 'JsonWebTokenError') {
+            throw AppError.badRequest('Invalid token', null, { source: 'setPassword' });
         }
         throw new AppError(error.message, error.statusCode || 500, null, { source: 'setPassword' });
     }
