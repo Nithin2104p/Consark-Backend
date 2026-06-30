@@ -8,14 +8,6 @@ require('../models/permission.model');
 const companyService = require('./company.service');
 const AppError = require('../utils/appError');
 
-const getUserByEmail = async (email) => {
-    try {
-        return userRepository.findOne({ email });
-    } catch (error) {
-        throw new AppError(error.message, error.statusCode || 500, null, { source: 'getUserByEmail' });
-    }
-};
-
 const fetchRoleAndPermissions = async (roleId) => {
     try {
         const [role, rolePermissions] = await Promise.all([
@@ -38,11 +30,6 @@ const fetchRoleAndPermissions = async (roleId) => {
 
 const signup = async ({ firstName, lastName, email, password, role = 'super_admin', companyName }) => {
     try {
-        const existingUser = await getUserByEmail(email);
-        if (existingUser) {
-            throw AppError.conflict('Email already in use', null, { source: 'signup' });
-        }
-
         const roleRecord = await roleRepository.findOne({ name: role });
         if (!roleRecord) {
             throw AppError.notFound(`Role not found: ${role}`, null, { source: 'signup' });
@@ -54,6 +41,11 @@ const signup = async ({ firstName, lastName, email, password, role = 'super_admi
 
         try {
             const company = await companyService.createCompany(companyName, { session });
+
+            const existingUser = await userRepository.findOne({ email, companyId: company._id }, { session });
+            if (existingUser) {
+                throw AppError.conflict('Email already in use', null, { source: 'signup' });
+            }
 
             const hashedPassword = await bcrypt.hash(password, 10);
             const userData = {
@@ -155,5 +147,4 @@ const login = async ({ email, password, companyId }) => {
 module.exports = {
     signup,
     login,
-    getUserByEmail,
 };

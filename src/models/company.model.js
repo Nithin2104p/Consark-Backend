@@ -21,6 +21,8 @@ const companySchema = new mongoose.Schema(
     }
 );
 
+companySchema.index({ name: 1 }, { unique: true, partialFilterExpression: { deletedAt: null } });
+
 const Company = mongoose.model("Company", companySchema);
 
 module.exports = Company;

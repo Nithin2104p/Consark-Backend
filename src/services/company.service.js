@@ -6,6 +6,10 @@ const createCompany = async (companyName, options = {}) => {
         if (!companyName || typeof companyName !== 'string') {
             throw new AppError('Company name is required', 400, null, { source: 'createCompany' });
         }
+        const existingCompany = await companyRepository.findOne({ name: companyName }, options);
+        if (existingCompany) {
+            return existingCompany;
+        }
         const company = await companyRepository.createOne({ name: companyName }, options);
         return company;
     } catch (error) {
